@@ -1,0 +1,27 @@
+public class Vaga {
+    private int numero;
+    private String tamanho;  // "pequeno", "médio", "grande"
+    private boolean disponibilidade;  // true para disponível, false para ocupada
+
+    public Vaga(int numero, String tamanho) {
+        this.numero = numero;
+        this.tamanho = tamanho;
+        this.disponibilidade = true;  // Vaga disponível inicialmente
+    }
+
+    public int getNumero() {
+        return numero;
+    }
+
+    public String getTamanho() {
+        return tamanho;
+    }
+
+    public boolean isDisponibilidade() {
+        return disponibilidade;
+    }
+
+    public void setDisponibilidade(boolean disponibilidade) {
+        this.disponibilidade = disponibilidade;
+    }
+}
