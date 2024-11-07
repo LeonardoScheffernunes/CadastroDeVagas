@@ -1,0 +1,116 @@
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Estacionamento {
+    private List<Vaga> vagas;
+    private List<Veiculo> veiculos;
+    private List<String> historico;
+
+    public Estacionamento() {
+        this.vagas = new ArrayList<>();
+        this.veiculos = new ArrayList<>();
+        this.historico = new ArrayList<>();
+    }
+
+    // Adiciona uma nova vaga ao estacionamento
+    public void adicionarVaga(int numero, String tamanho) {
+        vagas.add(new Vaga(numero, tamanho));
+    }
+
+    // Adiciona um novo veículo ao sistema
+    public void adicionarVeiculo(String placa, String modelo, String tamanho) {
+        veiculos.add(new Veiculo(placa, modelo, tamanho));
+    }
+
+    // Aloca um veículo a uma vaga compatível
+    public boolean alocarVeiculo(String placa, LocalDateTime horaEntrada) {
+        Veiculo veiculo = veiculos.stream()
+                .filter(v -> v.getPlaca().equals(placa))
+                .findFirst().orElse(null);
+
+        if (veiculo == null) {
+            System.out.println("Veículo não encontrado.");
+            return false;
+        }
+
+        // Verifica se existe uma vaga disponível e compatível com o tamanho do veículo
+        for (Vaga vaga : vagas) {
+            if (vaga.isDisponibilidade() && vaga.getTamanho().equals(veiculo.getTamanho())) {
+                veiculo.setHoraEntrada(horaEntrada);
+                vaga.setDisponibilidade(false);
+                return true;
+            }
+        }
+        System.out.println("Não há vaga disponível para o veículo.");
+        return false;
+    }
+
+    // Registra a saída do veículo e calcula o valor
+    public void registrarSaida(String placa, LocalDateTime horaSaida) {
+        Veiculo veiculo = veiculos.stream()
+                .filter(v -> v.getPlaca().equals(placa))
+                .findFirst().orElse(null);
+
+        if (veiculo == null) {
+            System.out.println("Veículo não encontrado.");
+            return;
+        }
+
+        veiculo.setHoraSaida(horaSaida);
+
+        // Calcula o tempo de permanência
+        Duration duracao = Duration.between(veiculo.getHoraEntrada(), veiculo.getHoraSaida());
+        long horas = duracao.toHours();
+
+        // Calcula o valor a ser pago
+        double valor = calcularValor(horas);
+
+        // Registra o histórico de pagamento
+        historico.add(String.format("Veículo: %s | Tempo: %d horas | Valor: R$ %.2f",
+                veiculo.getPlaca(), horas, valor));
+
+        // Libera a vaga
+        Vaga vaga = vagas.stream()
+                .filter(v -> !v.isDisponibilidade())
+                .findFirst().orElse(null);
+
+        if (vaga != null) {
+            vaga.setDisponibilidade(true);
+        }
+    }
+
+    // Calcula o valor a ser pago
+    private double calcularValor(long horas) {
+        if (horas <= 1) {
+            return 5.00;
+        } else if (horas <= 3) {
+            return 10.00;
+        } else {
+            return 15.00;
+        }
+    }
+
+    // Exibe as vagas ocupadas no momento
+    public void gerarRelatorioVagasOcupadas() {
+        System.out.println("Vagas Ocupadas:");
+        for (Vaga vaga : vagas) {
+            if (!vaga.isDisponibilidade()) {
+                Veiculo veiculo = veiculos.stream()
+                        .filter(v -> v.getHoraEntrada() != null && v.getHoraSaida() == null)
+                        .findFirst().orElse(null);
+                System.out.printf("Vaga: %d | Tamanho: %s | Veículo: %s\n",
+                        vaga.getNumero(), vaga.getTamanho(), veiculo.getPlaca());
+            }
+        }
+    }
+
+    // Exibe o histórico de veículos
+    public void gerarHistorico() {
+        System.out.println("Histórico de Permanência:");
+        for (String registro : historico) {
+            System.out.println(registro);
+        }
+    }
+}
